@@ -59,8 +59,8 @@ function deliverFile(fileName, res, type) {
 function createServer(onScan) {
   app.get('/qr', function(req, res) {
     deliverFile('download.svg', res, 'image/svg+xml');
-  })
-  console.log('/' + appName + '.apk');
+  });
+  
   app.get('/' + appName + '.apk', function(req, res) {
     console.log('scanned');
     deliverFile(cordovaDirectory + 'platforms/android/ant-build/' + appName + '-debug-unaligned.apk', res, 'application/vnd.android.package-archive');
@@ -87,14 +87,15 @@ function getIpAddress() {
   var ip;
   for (var i in ifaces) {
     var dev = ifaces[i];
-    dev.forEach(function(details) {
-      if (!ip && details.family === 'IPv4' && !details.internal && details.address !=='127.0.0.1') {
+    for (var n = 0, l = dev.length; n < l; n++) {
+      var details = dev[n];
+      if (details.family === 'IPv4' && !details.internal && details.address !=='127.0.0.1') {
         console.log('Your physal IP address is ' + details.address);
         ip = details.address;
+        return ip;
       }
-    });
+    }
   }
-  return ip;
 }
 
 function init(callback) {
@@ -126,6 +127,6 @@ function findConfig(directory, callback) {
   	}
   });
   finder.on('end', function () {
-  	if (configs.length == 0) return callback(new Error('No config file found!'));
+  	if (configs.length === 0) return callback(new Error('No config file found!'));
   });
 }
