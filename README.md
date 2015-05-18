@@ -4,7 +4,11 @@ The following example runs Qr_Download and opens the qr code to download in your
 
 ```js
 var QR = require('android-download-via-qr');
-QR('cordova/',{dontOpen:false});
+QR('cordova/',{dontOpen:false}, function (err) {
+  if (err) {
+    console.log(err);
+  }
+});
 ```
 
 It is really as simple as that!
