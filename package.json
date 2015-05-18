@@ -1,0 +1,34 @@
+{
+  "name": "android-download-via-qr",
+  "version": "1.0.0",
+  "description": "Download an android application to your phone via a QR code",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.10.1",
+    "findit": "^2.0.0",
+    "open": "0.0.5",
+    "qr-image": "^2.0.0",
+    "xml2js": "^0.4.4"
+  },
+  "scripts": {
+    "test": "node example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kjprice/android-download-via-qr.git"
+  },
+  "keywords": [
+    "qr",
+    "download",
+    "android",
+    "phonegap",
+    "cordova",
+    "build"
+  ],
+  "author": "KJ Price",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kjprice/android-download-via-qr/issues"
+  },
+  "homepage": "https://github.com/kjprice/android-download-via-qr"
+}
