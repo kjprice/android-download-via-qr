@@ -7,7 +7,7 @@ npm install android-download-via-qr
 ```
 
 ## Usage
-The method accepts three parameters.
+The method accepts three parameters: `path_to_android_directory, options, callback`.
 
 The following example runs Qr_Download and opens the qr code to download in your browser.
 
