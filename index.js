@@ -4,10 +4,10 @@ var os = require('os');
 var express = require('express');
 var open = require('open');
 var parseString = require('xml2js').parseString;
-var finder = require('findit');
+var Finder = require('findit');
 var app = express();
 
-var ip, url, appName, cordovaDirectory, opts;
+var ip, url, cordovaDirectory, opts;
 var port = '4324';
 
 
@@ -17,24 +17,8 @@ module.exports = function(directory, options, callback) {
   init(callback);
 };
 
-function getAppName(configFile, callback) {
-	try {
-		var configXML = fs.readFileSync(configFile, {
-			encoding: 'utf8'
-		});
-
-		parseString(configXML, function(err, config) {
-			appName = config.widget.name[0];
-            callback(null, appName);
-		});
-	}
-    catch (e) {
-        callback(e);
-    }
-}
-
 function createQrImage() {
-  url = ip + ':' + port + '/' + appName + '.apk';
+  url = ip + ':' + port + '/download.apk';
   var code = qr.imageSync(url, {
     type: 'svg'
   });
@@ -56,15 +40,14 @@ function deliverFile(fileName, res, type) {
   });
 }
 
-function createServer(onScan) {
+function createServer(apk, onScan) {
   app.get('/qr', function(req, res) {
     deliverFile('download.svg', res, 'image/svg+xml');
   });
   
-  app.get('/' + appName + '.apk', function(req, res) {
-    console.log('scanned');
-    deliverFile(cordovaDirectory + 'platforms/android/ant-build/' + appName + '-debug-unaligned.apk', res, 'application/vnd.android.package-archive');
-    server.close();
+  app.get('/download.apk', function(req, res) {
+    deliverFile(apk, res, 'application/vnd.android.package-archive');
+    //server.close();
     onScan();
   });
   
@@ -90,7 +73,7 @@ function getIpAddress() {
     for (var n = 0, l = dev.length; n < l; n++) {
       var details = dev[n];
       if (details.family === 'IPv4' && !details.internal && details.address !=='127.0.0.1') {
-        console.log('Your physal IP address is ' + details.address);
+        console.log('Your physical IP address is ' + details.address);
         ip = details.address;
         return ip;
       }
@@ -99,34 +82,27 @@ function getIpAddress() {
 }
 
 function init(callback) {
-  findConfig(cordovaDirectory, function (err, config) {
+  findApk(cordovaDirectory, function (err, apk) {
     if (err) return callback(err);
     
-    getAppName(config, function (err, appName) {
-      if (err) return callback(err);
-      
-      ip = getIpAddress();
-      createQrImage();
-      createServer(callback);
-    });
-
+    ip = getIpAddress();
+    createQrImage();
+    createServer(apk, callback);
   });
 }
 
-function findConfig(directory, callback) {
-  finder = finder(directory || '.');
-    
-  var configs = [];
-  var config;
+function findApk(directory, callback) {
+  var finder = Finder(directory || '.');
+  var apk;
   
   finder.on('file', function (file, stat) {
-  	if (file.match(/config\.xml$/)) {
-  		config = file;
-  		finder.stop();
-          callback(null, file);
+  	if (file.match(/-debug-unaligned.apk$/)) {
+  		apk = file;
+		  finder.stop();
+      callback(null, apk);
   	}
   });
   finder.on('end', function () {
-  	if (configs.length === 0) return callback(new Error('No config file found!'));
+    if (!apk) callback(new Error('No apk file found!'));
   });
 }
