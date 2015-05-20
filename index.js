@@ -22,7 +22,7 @@ function createQrImage() {
   var code = qr.imageSync(url, {
     type: 'svg'
   });
-  fs.writeFileSync('download.svg', code);
+  fs.writeFileSync('public/download.svg', code);
 }
 
 function deliverFile(fileName, res, type) {
@@ -41,8 +41,10 @@ function deliverFile(fileName, res, type) {
 }
 
 function createServer(apk, onScan) {
+  app.use(express.static('public'));
+  
   app.get('/qr', function(req, res) {
-    deliverFile('download.svg', res, 'image/svg+xml');
+    deliverFile('public/download.svg', res, 'image/svg+xml');
   });
   
   app.get('/download.apk', function(req, res) {
@@ -52,7 +54,7 @@ function createServer(apk, onScan) {
   });
   
   var server = app.listen(port, function() {
-    var runningURL = 'http://127.0.0.1:' + port + '/qr';
+    var runningURL = 'http://127.0.0.1:' + port + '/download.html';
     if (!opts.dontOpen) {
       open(runningURL, function(err) {
         if (err) {
