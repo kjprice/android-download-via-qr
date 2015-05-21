@@ -1,6 +1,6 @@
 {
   "name": "android-download-via-qr",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Download an android application to your phone via a QR code",
   "main": "index.js",
   "dependencies": {
