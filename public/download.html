@@ -21,13 +21,31 @@
 				height: 500px;
 			}
 		</style>
+		
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+		  var socket = io.connect('http://localhost:' + location.port);
+		  var secondsToClose = 3;
+		  
+		  socket.on('userScanned', function (data) {
+			  document.querySelector('.download-image').remove();
+			  document.querySelector('#message').innerHTML = 'The barcode has been scanned! We will be closing up shop in <span id="message-timer">' + secondsToClose + '</span>';
+			  
+			  setInterval(function () {
+				  if (--secondsToClose === 0) {
+					  window.close();
+				  }
+				  document.querySelector('#message-timer').innerText = secondsToClose;
+			  }, 1000);
+		  });
+		</script>
 	</head>
 	<body>
 		<div id="container">
 			<div id="message">
 				Fire up the Barcode Scanner on your android device and scan this bad boy. Your android app should download to your phone shortly.
 			</div>
-			<img class="download-image" src="download.svg" />
+			<img class="download-image" src="/qr" />
 		</div>
 	</body>
 </html>

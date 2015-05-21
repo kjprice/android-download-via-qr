@@ -1,15 +1,17 @@
 var qr = require('qr-image');
 var fs = require('fs');
 var os = require('os');
+var http = require('http');
 var express = require('express');
 var open = require('open');
 var parseString = require('xml2js').parseString;
 var Finder = require('findit');
-var app = express();
+var app = module.exports.app = express();
+var server = http.createServer(app);
+var io = require('socket.io')(server);
 
-var ip, url, cordovaDirectory, opts;
+var ip, url, cordovaDirectory, opts, userSocket;
 var port = '4324';
-
 
 module.exports = function(directory, options, callback) {
   opts = options || {};
@@ -17,12 +19,17 @@ module.exports = function(directory, options, callback) {
   init(callback);
 };
 
-function createQrImage() {
+io.on('connection', function (socket) {
+  if (!userSocket)
+    userSocket = socket;
+});
+
+function createQrImage(callback) {
   url = ip + ':' + port + '/download.apk';
   var code = qr.imageSync(url, {
     type: 'svg'
   });
-  fs.writeFileSync('public/download.svg', code);
+  callback && callback(code);
 }
 
 function deliverFile(fileName, res, type) {
@@ -41,19 +48,27 @@ function deliverFile(fileName, res, type) {
 }
 
 function createServer(apk, onScan) {
-  app.use(express.static('public'));
+  app.use(express.static(__dirname + '/public'));
   
   app.get('/qr', function(req, res) {
-    deliverFile('public/download.svg', res, 'image/svg+xml');
+    createQrImage(function (content) {
+      res.writeHead(200, {
+        'Content-Type': 'image/svg+xml'
+      });
+      res.end(content, 'utf-8');
+    });
+    
   });
   
   app.get('/download.apk', function(req, res) {
     deliverFile(apk, res, 'application/vnd.android.package-archive');
     //server.close();
+    userSocket.emit('userScanned');
     onScan();
   });
   
-  var server = app.listen(port, function() {
+  
+  server.listen(port, function() {
     var runningURL = 'http://127.0.0.1:' + port + '/download.html';
     if (!opts.dontOpen) {
       open(runningURL, function(err) {
@@ -88,7 +103,6 @@ function init(callback) {
     if (err) return callback(err);
     
     ip = getIpAddress();
-    createQrImage();
     createServer(apk, callback);
   });
 }
