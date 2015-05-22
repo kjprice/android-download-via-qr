@@ -32,21 +32,6 @@ function createQrImage(callback) {
   callback && callback(code);
 }
 
-function deliverFile(fileName, res, type) {
-  fs.readFile(fileName, function(err, content) {
-    if (err) {
-      console.log(err);
-      res.writeHead(500);
-      res.end();
-    } else {
-      res.writeHead(200, {
-        'Content-Type': type
-      });
-      res.end(content, 'utf-8');
-    }
-  });
-}
-
 function createServer(apk, onScan) {
   app.use(express.static(__dirname + '/public'));
   
@@ -61,10 +46,11 @@ function createServer(apk, onScan) {
   });
   
   app.get('/download.apk', function(req, res) {
-    deliverFile(apk, res, 'application/vnd.android.package-archive');
-    //server.close();
+    res.download(apk, 'application/vnd.android.package-archive', function (){
+      onScan();
+      process.exit();
+    });
     userSocket.emit('userScanned');
-    onScan();
   });
   
   
