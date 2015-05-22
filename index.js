@@ -46,7 +46,8 @@ function createServer(apk, onScan) {
   });
   
   app.get('/download.apk', function(req, res) {
-    res.download(apk, 'application/vnd.android.package-archive', function (){
+    res.download(apk, 'application/vnd.android.package-archive', function (err){
+      if (err) { return console.log(err); }
       onScan();
       process.exit();
     });
